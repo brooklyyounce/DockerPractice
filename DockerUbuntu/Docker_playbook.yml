@@ -1,0 +1,55 @@
+---
+- name: Beginning Install Docker and remove old Docker Files
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Remove older versions of docker, docker-machine, docker.io, containderd, runc if any
+      apt: name={{item}} state=absent
+      with_items:
+        - docker
+        - docker.io
+        - docker-machine
+        - containerd
+        - runc
+
+    - name: Check for updates, equivalent apt-get update
+      apt:
+        upgrade: yes
+        update_cache: yes
+    
+    - name: Install packages to allow apt to use a repo over https
+      apt: name={{item}} state=present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: Add Docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Setup the stable repo for docker
+      apt_repository:
+        repo: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable'
+        state: present
+
+    - name: Install docker packages
+      apt: name={{item}} state=present
+      with_items:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: Get the docker version
+      shell: docker --version
+      register: ver
+
+    - name: Print the docker version
+      debug: var=ver.stdout_lines
+
+    
+    
