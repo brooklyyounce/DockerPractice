@@ -16,7 +16,7 @@ Docker swarm gotchas:
   - gpg2 --full-generate-key
   - gpg2 -k
   - pass init "[uid returned from above commands]"
-  -https://stackoverflow.com/questions/51222996/docker-login-fails-on-a-server-with-no-x11-installed
+  - https://stackoverflow.com/questions/51222996/docker-login-fails-on-a-server-with-no-x11-installed
 
 
 Prometheus gotchas
