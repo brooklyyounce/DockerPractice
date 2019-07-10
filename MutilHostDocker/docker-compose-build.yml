@@ -1,0 +1,23 @@
+# docker-compose.yml
+#docker version: 2 vs 3 (3 includes new support for docker swarm)
+version: '3'
+#begin list of services
+services:
+#start new service named jmx-exporter
+  application-and-jmx-exporter:
+    #assuming the Dockerfile is in our current directory that we are composing from
+    build:
+      context: .
+      args:
+          APP_JAR_FILE: ./target/application.jar
+          JMX_PORT: 8081
+          JMX_CONFIG_FILE: ./target/jmx_config.yml
+          JMX_JAR_FILE: ./target/jmx.jar
+
+    container_name: application-and-jmx-exporter
+    #map port from outside world to port on cotainer so that can see webpage
+    ports: 
+      - '8080:8080'
+    #only show the metrics from jmx inside the container to prometheus
+    expose:
+      - '8081'

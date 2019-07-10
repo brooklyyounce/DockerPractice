@@ -1,0 +1,31 @@
+#prometheus.yml
+global:
+    #poll every 5 seconds
+    scrape_interval: 5s
+    external_labels:
+      monitor: 'Prometheus-Monitor'
+scrape_configs:
+  - job_name: 'prometheus'
+    dns_sd_configs:
+    - names:
+      - 'tasks.prometheus'
+      #DNSs have types, who knew, go read docs
+      type: 'A'
+      port: 9090
+
+  #hopefully this will discover every service 
+  - job_name: 'node-exporter'
+    dns_sd_configs:
+    - names:
+      - 'tasks.node-exporter-metric'
+      #DNSs have types, who knew, go read docs
+      type: 'A'
+      port: 9100
+
+  - job_name: 'application-and-jmx-exporter'
+    dns_sd_configs:
+    - names:
+      - 'tasks.application-and-jmx-exporter'
+      #DNSs have types, who knew, go read docs
+      type: 'A'
+      port: 8081

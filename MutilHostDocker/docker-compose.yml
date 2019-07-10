@@ -1,0 +1,90 @@
+# docker-compose.yml
+#docker version: 2 vs 3 (3 includes new support for docker swarm)
+version: '3'
+#begin list of services
+
+#user defined network
+networks:
+  monitor-net:
+    driver: overlay
+#volumes so that we can persist some data when containers die and come back
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+services:
+#service name prometheus
+  prometheus:
+    #image to pull from docker hub
+    image: prom/prometheus
+    container_name: prometheus
+    #data from old containers is preserved when a new container is spun up
+    #from the current directory, copy the prom.yml file into the container at /etc/prom...
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    volumes:
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        #if there was previously a container that had some data, let's import it into our new container so that data is not lost
+        - prometheus_data:/prometheus
+    #start prometheus with these command like arguements
+    command:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+    #map prometheus port from outside world to the container so that we can view the prometheus dashboard form outside world
+    ports:
+      - '9090:9090'
+    networks:
+      - monitor-net        
+
+  #start new service named node-exporter
+  node-exporter-metric:
+    image: prom/node-exporter
+    container_name: node-exporter
+    #expose this port to network inside with the containers and not the outside world
+    deploy:
+      mode: global
+    expose:
+      - '9100'
+    networks:
+      - monitor-net 
+
+  #start new service named jmx-exporter
+  application-and-jmx-exporter:
+    #this image is pushed to dockerhub, otherwise there will need to be a registry created so that images between master and workers can be shared with swarm
+    image: brooklyyounce/docker_application-and-jmx-exporter
+    container_name: application-and-jmx-exporter
+    #map port from outside world to port on container so that can see webpage
+    deploy:
+      replicas: 2
+      placement:
+        constraints: [node.role == worker]
+    ports: 
+      - '8080:8080'
+    #only show the metrics from jmx inside the container to prometheus
+    expose:
+      - '8081'
+    networks:
+      - monitor-net
+
+
+  #start new service named grafana
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    #overwrite default settings in conf/grafana.ini with env vars
+    #setting default password to admin?
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    #map 3000 from the outside world to the port 3000 on the container so that we can see the grafana dashboard
+    ports:
+      - '3000:3000'
+    networks:
+      - monitor-net 
+
