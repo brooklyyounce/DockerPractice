@@ -1,16 +1,16 @@
 Docker swarm gotchas:
 
 
--images need to be pre built before deploy
-  -built custom image with web app and jmx exporter before using the big docker-compose file
-  -docker-compose -f docker-compose-build.yml build
+- images need to be pre built before deploy
+  - built custom image with web app and jmx exporter before using the big docker-compose file
+  - docker-compose -f docker-compose-build.yml build --no-cache
   - -f for giving a file name for compose (else will default to docker-compose.yml)
   - does assume that there is a file named 'Dockerfile' in the current working directory
   
--in order for services to go on all nodes, including masters and workers must use: mode: global
+- in order for services to go on all nodes, including masters and workers must use: mode: global
   - see docker-compose.yml for node-exporter
   
- -docker login error, something about docker defaulting to secretservice and will change to using pass
+ - docker login error, something about docker defaulting to secretservice and will change to using pass
   - error getting credentials - err: exit status 1, out: `Cannot autolaunch D-Bus without X11 $DISPLAY
   - sudo apt install gnupg2 pass
   - gpg2 --full-generate-key
